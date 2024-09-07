@@ -27,8 +27,31 @@ Use this installation mode if you are contributing to NeMo.
 
 .. code-block:: bash
 
+    # create env
+    conda create -n temo python=3.10
+    conda activate temo
+
+    # clone nemo
+    git clone https://github.com/NVIDIA/NeMo.git
+    
+    # check the nvcc version and install pytorch
+    pip3 install torch torchvision torchaudio
+    
+    conda install -c nvidia cuda-nvprof=12.1 # Cuda version
+    pip install packaging
+
+    # install apex
+    git clone https://github.com/NVIDIA/apex
+    cd apex
+    # if pip >= 23.1 (ref: https://pip.pypa.io/en/stable/news/#v23-1) which supports multiple `--config-settings` with the same key... 
+    pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" --config-settings "--build-option=--fast_layer_norm" --config-settings "--build-option=--distributed_adam" --config-settings "--build-option=--deprecated_fused_adam" ./
+    
+    # install NeMo
+    cd ../NeMo
+    ./reinstall.sh
+    
     apt-get update && apt-get install -y libsndfile1 ffmpeg
-    git clone https://github.com/NVIDIA/NeMo
+    git clone https://github.com/AI4Bharat/NeMo
     cd NeMo
     ./reinstall.sh
 

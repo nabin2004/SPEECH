@@ -49,11 +49,7 @@ Use this installation mode if you are contributing to NeMo.
     # install NeMo
     cd ../NeMo
     ./reinstall.sh
-    
-    apt-get update && apt-get install -y libsndfile1 ffmpeg
-    git clone https://github.com/AI4Bharat/NeMo
-    cd NeMo
-    ./reinstall.sh
+
 
 If you only want the toolkit without additional conda-based dependencies, you may replace ``reinstall.sh``
 with ``pip install -e .`` when your PWD is the root of the NeMo repository.

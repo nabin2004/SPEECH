@@ -117,10 +117,10 @@ class MultilingualTokenizer(TokenizerSpec):
             ids = ids.tolist()
 
         tokens = []
+        tokenizer = self.tokenizers_dict[lang]
         for id in ids:
             # offset_id = self.offset_token_ids_by_token_id[id]
             # tokenizer = self.tokenizers_by_token_id[id]
-            tokenizer = self.tokenizers_dict[lang]
             # tokens.extend(tokenizer.ids_to_tokens([offset_id]))
             tokens.extend(tokenizer.ids_to_tokens([id]))
         text = ''.join(tokens).replace('▁', ' ')
@@ -131,14 +131,9 @@ class MultilingualTokenizer(TokenizerSpec):
         tokenizer = self.tokenizers_dict[lang_id]
         return tokenizer.token_to_id(token) + self.token_id_offset[lang_id]
 
-    def ids_to_tokens(self, ids):
-        tokens = []
-
-        for id in ids:
-            offset_id = self.offset_token_ids_by_token_id[id]
-            tokenizer = self.tokenizers_by_token_id[id]
-            token = tokenizer.ids_to_tokens([offset_id])[0]
-            tokens.append(token)
+    def ids_to_tokens(self, ids, lang_id):
+        tokenizer = self.tokenizers_dict[lang_id]
+        tokens = [tokenizer.ids_to_tokens([id])[0] for id in ids]
 
         return tokens
 

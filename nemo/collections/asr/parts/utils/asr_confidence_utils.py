@@ -424,7 +424,7 @@ class ConfidenceMixin(ABC):
         return word_confidence
 
     def _aggregate_token_confidence_subwords_sentencepiece(
-        self, words: List[str], token_confidence: List[float], token_ids: List[int]
+        self, words: List[str], token_confidence: List[float], token_ids: List[int], lang_id: str = None
     ) -> List[float]:
         """Implementation of token confidence aggregation for subword-based models.
 
@@ -445,8 +445,8 @@ class ConfidenceMixin(ABC):
             prev_unk = False
             prev_underline = False
             for i, token_id in enumerate(token_ids):
-                token = self.decode_ids_to_tokens([int(token_id)])[0]
-                token_text = self.decode_tokens_to_str([int(token_id)])
+                token = self.decode_ids_to_tokens([int(token_id)], lang_id)[0]
+                token_text = self.decode_tokens_to_str([int(token_id)], lang_id)
                 # treat `<unk>` as a separate word regardless of the next token
                 # to match the result of `tokenizer.ids_to_text`
                 if (token != token_text or prev_unk) and i > j:

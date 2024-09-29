@@ -502,7 +502,7 @@ class AbstractRNNTDecoding(ConfidenceMixin):
                 if self.preserve_frame_confidence and (
                     self.preserve_word_confidence or self.preserve_token_confidence
                 ):
-                    hypotheses = self.compute_confidence(hypotheses)
+                    hypotheses = self.compute_confidence(hypotheses, lang_ids)
                 return hypotheses, None
 
             best_hyp_text = [h.text for h in hypotheses]
@@ -561,7 +561,7 @@ class AbstractRNNTDecoding(ConfidenceMixin):
 
         return hypotheses_list
 
-    def compute_confidence(self, hypotheses_list: List[Hypothesis]) -> List[Hypothesis]:
+    def compute_confidence(self, hypotheses_list: List[Hypothesis], lang_ids: List[str] = None) -> List[Hypothesis]:
         """
         Computes high-level (per-token and/or per-word) confidence scores for a list of hypotheses.
         Assumes that `frame_confidence` is present in the hypotheses.
@@ -595,8 +595,11 @@ class AbstractRNNTDecoding(ConfidenceMixin):
                             offset += 1
                 hyp.token_confidence = token_confidence
         if self.preserve_word_confidence:
-            for hyp in hypotheses_list:
-                hyp.word_confidence = self._aggregate_token_confidence(hyp)
+            for idx, hyp in enumerate(hypotheses_list):
+                if lang_ids:
+                    hyp.word_confidence = self._aggregate_token_confidence(hyp, lang_ids[idx])
+                else:
+                    hyp.word_confidence = self._aggregate_token_confidence(hyp)
         return hypotheses_list
 
     @abstractmethod
@@ -1401,7 +1404,7 @@ class RNNTBPEDecoding(AbstractRNNTDecoding):
         if isinstance(self.decoding, rnnt_beam_decoding.BeamRNNTInfer):
             self.decoding.set_decoding_type('subword')
 
-    def _aggregate_token_confidence(self, hypothesis: Hypothesis) -> List[float]:
+    def _aggregate_token_confidence(self, hypothesis: Hypothesis, lang_id: str = None) -> List[float]:
         """
         Implemented by subclass in order to reduce token confidence to a word-level confidence.
 
@@ -1414,7 +1417,7 @@ class RNNTBPEDecoding(AbstractRNNTDecoding):
             A list of word-level confidence scores.
         """
         return self._aggregate_token_confidence_subwords_sentencepiece(
-            hypothesis.words, hypothesis.token_confidence, hypothesis.y_sequence
+            hypothesis.words, hypothesis.token_confidence, hypothesis.y_sequence, lang_id
         )
 
     def decode_tokens_to_str(self, tokens: List[int], lang: str = None) -> str:
@@ -1431,9 +1434,10 @@ class RNNTBPEDecoding(AbstractRNNTDecoding):
             hypothesis = self.tokenizer.ids_to_text(tokens, lang)
         else:
             hypothesis = self.tokenizer.ids_to_text(tokens)
+
         return hypothesis
 
-    def decode_ids_to_tokens(self, tokens: List[int]) -> List[str]:
+    def decode_ids_to_tokens(self, tokens: List[int], lang: str = None) -> List[str]:
         """
         Implemented by subclass in order to decode a token id list into a token list.
         A token list is the string representation of each token id.
@@ -1444,7 +1448,10 @@ class RNNTBPEDecoding(AbstractRNNTDecoding):
         Returns:
             A list of decoded tokens.
         """
-        token_list = self.tokenizer.ids_to_tokens(tokens)
+        if lang is not None:
+            token_list = self.tokenizer.ids_to_tokens(tokens, lang)
+        else:
+            token_list = self.tokenizer.ids_to_tokens(tokens)
         return token_list
 
     def decode_tokens_to_lang(self, tokens: List[int]) -> str:

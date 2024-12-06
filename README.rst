@@ -32,7 +32,7 @@ Use this installation mode if you are contributing to NeMo.
     conda activate temo
 
     # clone nemo
-    git clone https://github.com/NVIDIA/NeMo.git
+    git clone https://github.com/AI4Bharat/NeMo.git
     
     # check the nvcc version and install pytorch
     pip3 install torch torchvision torchaudio

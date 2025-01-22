@@ -1599,14 +1599,18 @@ class RNNTJoint(rnnt_abstract.AbstractRNNTJoint, Exportable, AdapterModuleMixin)
             inp = self.forward_enabled_adapters(inp)
 
         if language_ids is not None: #CTEMO
-            
             # Do partial forward of joint net (skipping the final linear)
             for module in self.joint_net[:-1]:
                 inp = module(inp)  # [B, T, U, H]
-            res_single = []
-            for single_inp, lang in zip(inp, language_ids):
-                res_single.append(self.joint_net[-1][lang](single_inp))
-            res = torch.stack(res_single)
+            
+            # check if all the items in the batch have the same langauge, pass them through
+            if len(set(language_ids)) == 1:
+                res = self.joint_net[-1][language_ids[0]](inp)
+            else:
+                res_single = []
+                for single_inp, lang in zip(inp, language_ids):
+                    res_single.append(self.joint_net[-1][lang](single_inp))
+                res = torch.stack(res_single)
         else:
             res = self.joint_net(inp)  # [B, T, U, V + 1]
 

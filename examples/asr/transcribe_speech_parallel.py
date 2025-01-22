@@ -140,6 +140,7 @@ def match_train_config(predict_ds, train_ds):
 
 @hydra_runner(config_name="TranscriptionConfig", schema=ParallelTranscriptionConfig)
 def main(cfg: ParallelTranscriptionConfig):
+    torch.set_float32_matmul_precision('medium')
     if cfg.model.endswith(".nemo"):
         logging.info("Attempting to initialize from .nemo file")
         model = ASRModel.restore_from(restore_path=cfg.model, map_location="cpu")

@@ -151,11 +151,11 @@ class TranscriptionConfig:
     allow_mps: bool = False  # allow to select MPS device (Apple Silicon M-series GPU)
     amp: bool = False
     amp_dtype: str = "float16"  # can be set to "float16" or "bfloat16" when using amp
-    matmul_precision: str = "highest"  # Literal["highest", "high", "medium"]
+    matmul_precision: str = "medium"  # Literal["highest", "high", "medium"]
     audio_type: str = "wav"
 
     # Recompute model transcription, even if the output folder exists with scores.
-    overwrite_transcripts: bool = True
+    overwrite_transcripts: bool = False
 
     # Decoding strategy for CTC models
     ctc_decoding: CTCDecodingConfig = CTCDecodingConfig()
@@ -407,6 +407,8 @@ def main(cfg: TranscriptionConfig) -> Union[TranscriptionConfig, List[Hypothesis
                 override_cfg.augmentor = augmentor
                 override_cfg.text_field = cfg.gt_text_attr_name
                 override_cfg.lang_field = cfg.gt_lang_attr_name
+                override_cfg.language_id = cfg.langid
+
                 transcriptions = asr_model.transcribe(audio=filepaths, override_config=override_cfg,)
 
     if cfg.dataset_manifest is not None:

@@ -38,7 +38,7 @@ cfg.train_ds.manifest_filepath = manifest_path
 cfg.train_ds.batch_size = 8
 cfg.optim.lr = 1e-4
 
-trainer = nemo.utils.exp_manager.ExpManager(asr_model, OmegaConf.create({"exp_dir": "./results"}))
+trainer = nemo.utils.exp_manager.exp_manager(asr_model, OmegaConf.create({"exp_dir": "./results"}))
 
 asr_model.setup_training_data(train_data_config=cfg.train_ds)
 asr_model.setup_validation_data(val_data_config=cfg.train_ds)
@@ -55,6 +55,6 @@ def transcribe_with_beam_search(audio_path):
     best_hyp = max(hypotheses, key=lambda x: x.score)
     return best_hyp.text
 
-sample_audio = "path/to/sample.wav"
+sample_audio = "../input/wav_format/773_Naya_Colony_Basti.wav"
 transcription = transcribe_with_beam_search(sample_audio)
 print("Transcription:", transcription)

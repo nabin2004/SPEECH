@@ -1,60 +1,25 @@
-from transformers import Wav2Vec2Processor, AutoModelForSeq2SeqLM # for RNNT 
-from datasets import load_dataset
-from transformers import TrainingArguments, Trainer
-import librosa
+import torch
+import soundfile as sf
+import nemo.collections.asr as nemo_asr
 
-# Load IndicConformer RNNT Model & Processor
-model_name = "../models/ne.nemo"  
-processor = Wav2Vec2Processor.from_pretrained(model_name)
-model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+model_path = "ne.nemo"
+lang_id = "ne"
 
-# Load Dataset
-# dataset = load_dataset("csv", data_files={"train": "data/train/train.csv" , "validation": "data/valid/valid.csv"})  
-dataset = load_dataset("csv", data_files={"train": "../input/cleaned_csv.csv"})  
+file_path = "/content/drive/MyDrive/ne_np_female/ne_np_female"
+wavs_files = f"{file_path}/wavs/*.wav"
+labels = f"{file_path}/line_index.tsv"
 
-# Preprocessing Function
-def preprocess(batch):
-    audio_path = batch["file_name"]
-    
-    # Load audio file
-    audio, _ = librosa.load(audio_path, sr=16000)
-    
-    # Convert to model input format
-    batch["input_values"] = processor(audio, sampling_rate=16000).input_values[0]
-    
-    # Tokenize transcription text
-    batch["labels"] = processor.tokenizer(batch["text"]).input_ids
-    
-    return batch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = nemo_asr.models.EncDecCTCModel.restore_from(restore_path=model_path)
+model.eval() 
+model = model.to(device)
 
-# Apply Preprocessing
-dataset = dataset.map(preprocess)
+# download and load audio
+MEDIA_URL = "/content/drive/MyDrive/ne_np_female/ne_np_female/wavs/nep_0258_0119737288.wav"
 
-# Training Arguments
-training_args = TrainingArguments(
-    output_dir="./results",
-    evaluation_strategy="epoch",
-    save_strategy="epoch",
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=8,
-    logging_dir="./logs",
-    logging_steps=10,
-    learning_rate=1e-4,
-    num_train_epochs=10,
-    save_total_limit=2,  # Keep only last 2 checkpoints
-)
+#Download
+# !ffmpeg -i "$MEDIA_URL" -ac 1 -ar 16000 sample_audio_infer_ready.wav -y
 
-# Trainer for RNNT Model
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=dataset["train"],
-    eval_dataset=dataset["validation"]
-)
-
-# Start Training
-trainer.train()
-
-# Save Fine-tuned Model
-model.save_pretrained("../models/nepali-stt-model-rnnt")
-processor.save_pretrained("../models/nepali-stt-model-rnnt")
+model.cur_decoder = "ctc"
+ctc_text = model.transcribe(['sample_audio_infer_ready.wav'], batch_size=1,logprobs=False, language_id=lang_id)[0]
+print(ctc_text)

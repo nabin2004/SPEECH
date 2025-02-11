@@ -1,4 +1,4 @@
-# model_path = "models/ne.nemo"
+# model_path = "models/ne.nemo" 
 # lang_id = "ne"
 
 # file_path = "/content/drive/MyDrive/ne_np_female/ne_np_female"

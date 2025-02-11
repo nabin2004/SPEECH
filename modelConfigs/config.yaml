@@ -1,0 +1,36 @@
+# model_defaults:
+#   enc_hidden: 512  # Example value for encoder hidden size
+#   pred_hidden: 512  # Example value for predictor hidden size
+
+model:
+  sample_rate: 16000
+  train_ds:
+    manifest_filepath: '../input/train_manifest.json'
+    batch_size: 32
+    shuffle: true
+  tokenizer:
+    dir: "../tokenizer/tokenizer"
+    type: "wpe"
+  encoder:
+    model: "Conformer"
+    d_model: 512
+    num_layers: 16
+    subsampling: "vggnet"
+  decoder:
+    model: "Transducer"
+    hidden_size: 512
+  joint:
+    num_classes: 119547
+    d_model: 512
+    num_layers: 2
+    activation: "relu"
+    dropout: 0.1
+
+    # model_defaults:
+    #   enc_hidden: 512  # Example value for encoder hidden size
+    #   pred_hidden: 512  # Example value for predictor hidden size
+
+model_defaults:
+  enc_hidden: 512  # Example value for encoder hidden size
+  pred_hidden: 512  # Example value for predictor hidden size
+

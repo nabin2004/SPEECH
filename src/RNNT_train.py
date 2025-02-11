@@ -10,7 +10,12 @@ import json
 import pandas as pd
 
 model_path = "../models/ne.nemo"
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 asr_model = EncDecRNNTBPEModel.restore_from(model_path, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+model = nemo_asr.models.EncDecCTCModel.restore_from(restore_path=model_path)
+model.eval() 
+model = model.to(device)
 print("Model loaded successfully!")
 
 dataset_path = "../input/cleaned_csv_updated.csv"
@@ -20,12 +25,12 @@ def preprocess(file_path):
     audio, sr = librosa.load(file_path, sr=16000)
     return torch.tensor(audio, dtype=torch.float32)
 
-train_data = []
-for _, row in df.iterrows():
-    file_path = row['file_name']
-    transcript = row['Name']
-    input_values = preprocess(file_path)
-    train_data.append({"audio": input_values, "text": transcript})
+# train_data = []
+# for _, row in df.iterrows():
+#     file_path = row['file_name']
+#     transcript = row['Name']
+#     input_values = preprocess(file_path)
+#     train_data.append({"audio": input_values, "text": transcript})
 
 manifest_path = "../input/train_manifest.json"
 # with open(manifest_path, "w") as f:
@@ -33,28 +38,30 @@ manifest_path = "../input/train_manifest.json"
 #         json.dump({"audio_filepath": sample["audio"], "text": sample["text"], "duration": len(sample["audio"]) / 16000}, f)
 #         f.write("\n")
 
-cfg = asr_model.cfg
+cfg = model.cfg
 cfg.train_ds.manifest_filepath = manifest_path
 cfg.train_ds.batch_size = 8
 cfg.optim.lr = 1e-4
 
-trainer = nemo.utils.exp_manager.exp_manager(asr_model, OmegaConf.create({"exp_dir": "./results"}))
+print("-------------RUNNNNNNNNNNNNNNNNNNNNNNING---------------------------")
+trainer = nemo.utils.exp_manager.exp_manager(model, OmegaConf.create({"exp_dir": "./results"}))
 
-asr_model.setup_training_data(train_data_config=cfg.train_ds)
-asr_model.setup_validation_data(val_data_config=cfg.train_ds)
-asr_model.train()
+model.setup_training_data(train_data_config=cfg.train_ds)
+model.setup_validation_data(val_data_config=cfg.train_ds)
+model.train()
 
-asr_model.save_to("../models/nepali-stt-model-rnnt.nemo")
+# model.save_to("../models/nepali-stt-model-rnnt.nemo")
 print("Fine-tuned RNNT model saved successfully!")
 
-beam_search = rnnt(asr_model.decoder, asr_model.joint, beam_size=5)
-def transcribe_with_beam_search(audio_path):
+beam_search = nemo.collections.asr.modules.rnnt(model.decoder, model.joint, beam_size=5)
+
+def transcribe(audio_path, model):
     audio, sr = librosa.load(audio_path, sr=16000)
-    audio_tensor = torch.tensor(audio).unsqueeze(0).to(asr_model.device)
-    hypotheses = beam_search(audio_tensor)
+    audio_tensor = torch.tensor(audio).unsqueeze(0).to(model.device)
+    hypotheses = model(audio_tensor)
     best_hyp = max(hypotheses, key=lambda x: x.score)
     return best_hyp.text
 
 sample_audio = "../input/wav_format/773_Naya_Colony_Basti.wav"
-transcription = transcribe_with_beam_search(sample_audio)
+transcription = transcribe(sample_audio, model)
 print("Transcription:", transcription)

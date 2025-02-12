@@ -36,6 +36,8 @@ trainer1 = pl.Trainer(devices=1, max_epochs=10)
 
 asr_model = nemo_asr.models.EncDecCTCModelBPE(cfg=params.model, trainer=trainer1)
 
+# nemo_asr.models.EncDecRNNTModel
+
 trainer1.fit(asr_model)
 
 asr_model.save_to("asr_model.nemo")

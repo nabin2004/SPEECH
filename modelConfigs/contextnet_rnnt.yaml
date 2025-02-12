@@ -1,4 +1,4 @@
-name: &name "ContextNet5x1"
+name: &name "IndicConformer"
 sample_rate: &sample_rate 16000
 repeat: &repeat 1
 dropout: &dropout 0.0

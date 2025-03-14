@@ -1,0 +1,191 @@
+cfg:
+  train_ds:
+    manifest_filepath: ../input/train_manifest.json
+    sample_rate: 16000
+    batch_size: 32
+    trim_silence: true
+    max_duration: 16.7
+    shuffle: true
+    num_workers: 8
+    pin_memory: true
+    is_tarred: false
+    tarred_audio_filepaths: null
+    shard_strategy: scatter
+    shuffle_n: 2048
+    bucketing_strategy: synced_randomized
+    bucketing_batch_size: null
+  validation_ds:
+    manifest_filepath: ../input/validation_data/valid_manifest.json
+    sample_rate: 16000
+    batch_size: 32
+    shuffle: false
+    num_workers: 8
+    pin_memory: true
+  tokenizer:
+    dir: ../tokenizer/
+    type: bpe
+  preprocessor:
+    _target_: nemo.collections.asr.modules.AudioToMelSpectrogramPreprocessor
+    normalize: per_feature
+    window_size: 0.02
+    sample_rate: 16000
+    window_stride: 0.01
+    window: hann
+    features: 64
+    n_fft: 512
+    frame_splicing: 1
+    dither: 1.0e-05
+  spec_augment:
+    _target_: nemo.collections.asr.modules.SpectrogramAugmentation
+    rect_freq: 50
+    rect_masks: 5
+    rect_time: 120
+  encoder:
+    _target_: nemo.collections.asr.modules.ConvASREncoder
+    feat_in: 64
+    activation: relu
+    conv_mask: true
+    jasper:
+    - filters: 128
+      repeat: 1
+      kernel:
+      - 11
+      stride:
+      - 1
+      dilation:
+      - 1
+      dropout: 0.0
+      residual: true
+      separable: true
+      se: true
+      se_context_size: -1
+    - filters: 256
+      repeat: 1
+      kernel:
+      - 13
+      stride:
+      - 1
+      dilation:
+      - 1
+      dropout: 0.0
+      residual: true
+      separable: true
+      se: true
+      se_context_size: -1
+    - filters: 256
+      repeat: 1
+      kernel:
+      - 15
+      stride:
+      - 1
+      dilation:
+      - 1
+      dropout: 0.0
+      residual: true
+      separable: true
+      se: true
+      se_context_size: -1
+    - filters: 256
+      repeat: 1
+      kernel:
+      - 17
+      stride:
+      - 1
+      dilation:
+      - 1
+      dropout: 0.0
+      residual: true
+      separable: true
+      se: true
+      se_context_size: -1
+    - filters: 256
+      repeat: 1
+      kernel:
+      - 19
+      stride:
+      - 1
+      dilation:
+      - 1
+      dropout: 0.0
+      residual: true
+      separable: true
+      se: true
+      se_context_size: -1
+    - filters: 256
+      repeat: 1
+      kernel:
+      - 21
+      stride:
+      - 1
+      dilation:
+      - 1
+      dropout: 0.0
+      residual: false
+      separable: true
+      se: true
+      se_context_size: -1
+    - filters: 1024
+      repeat: 1
+      kernel:
+      - 1
+      stride:
+      - 1
+      dilation:
+      - 1
+      dropout: 0.0
+      residual: false
+      separable: true
+      se: true
+      se_context_size: -1
+  decoder:
+    _target_: nemo.collections.asr.modules.ConvASRDecoder
+    feat_in: 1024
+    num_classes: 32
+    vocabulary:
+    - <unk>
+    - ▁
+    - s
+    - '>'
+    - ▁<
+    - e
+    - o
+    - /
+    - t
+    - r
+    - h
+    - 'y'
+    - a
+    - u
+    - i
+    - b
+    - l
+    - p
+    - d
+    - f
+    - g
+    - m
+    - c
+    - w
+    - k
+    - v
+    - x
+    - j
+    - z
+    - 'n'
+    - <
+    - q
+  optim:
+    name: adam
+    lr: 0.1
+    betas:
+    - 0.9
+    - 0.999
+    weight_decay: 0.0001
+    sched:
+      name: CosineAnnealing
+      warmup_steps: null
+      warmup_ratio: 0.05
+      min_lr: 1.0e-06
+      last_epoch: -1
+  target: nemo.collections.asr.models.ctc_bpe_models.EncDecCTCModelBPE
+  nemo_version: 1.23.0rc0

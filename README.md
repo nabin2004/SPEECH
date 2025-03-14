@@ -1,5 +1,10 @@
 # Speech-to-Text Fine-Tuning
 
+Dataset Preparation Scripts
+
+During the dataset preparation process, various Python scripts were used to format and preprocess the data. Most scripts can be found in the `PythonScripts/` directory.
+
+
 ## Dataset Format
 The dataset is structured in JSON format, where each entry represents an audio sample with metadata. Below is an example:
 

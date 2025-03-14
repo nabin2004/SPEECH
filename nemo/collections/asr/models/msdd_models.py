@@ -649,7 +649,7 @@ class EncDecDiarLabelModel(ModelPT, ExportableEncDecModel):
         return f1_score, simple_acc
 
 
-class ClusterEmbedding(torch.nn.Module):
+class NeuralDiarizer(torch.nn.Module):
     """
     This class is built for calculating cluster-average embeddings, segmentation and load/save of the estimated cluster labels.
     The methods in this class is used for the inference of MSDD models.

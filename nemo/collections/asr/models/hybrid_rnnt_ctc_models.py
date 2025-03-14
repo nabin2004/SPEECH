@@ -360,6 +360,7 @@ class EncDecHybridRNNTCTCModel(EncDecRNNTModel, ASRBPEMixin, InterCTCMixin):
             signal, signal_len, transcript, transcript_len = batch
             language_ids = None
         else:
+            print("This is signal", batch[0])
             signal, signal_len, transcript, transcript_len, sample_ids, language_ids = batch
 
         # forward() only performs encoder forward

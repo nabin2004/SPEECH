@@ -188,8 +188,9 @@ def setup_dataloaders(asr_model, cfg):
 @hydra_runner(config_path="conf/asr_finetune", config_name="speech_to_text_finetune")
 def main(cfg):
     logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
-
+    
     trainer = pl.Trainer(**cfg.trainer)
+
     exp_manager(trainer, cfg.get("exp_manager", None))
 
     if hasattr(cfg, 'init_from_ptl_ckpt') and cfg.init_from_ptl_ckpt is not None:

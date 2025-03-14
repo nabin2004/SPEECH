@@ -2,7 +2,7 @@ name: "Speech_To_Text_Finetuning"
 
 # use `init_from_nemo_model` or `init_from_pretrained_model` to initialize the model
 # We do not currently support `init_from_ptl_ckpt` to create a single script for all types of models.
-init_from_nemo_model: null # path to nemo model
+init_from_nemo_model: "models/ne.nemo" # path to nemo model
 
 model:
   sample_rate: 16000
@@ -12,9 +12,9 @@ model:
   skip_nan_grad: false
 
   train_ds:
-    manifest_filepath: ???
+    manifest_filepath: ./input/train_manifest_with_ids.json
     sample_rate: ${model.sample_rate}
-    batch_size: 16 # you may increase batch_size if your memory allows
+    batch_size: 1
     shuffle: true
     num_workers: 8
     pin_memory: true
@@ -27,24 +27,32 @@ model:
     # bucketing params
     bucketing_strategy: "fully_randomized"
     bucketing_batch_size: null
+    return_sample_id: true
+    return_language_id: true 
 
   validation_ds:
-    manifest_filepath: ???
+    manifest_filepath: "./input/validation_data/valid_manifest_with_ids.json"
     sample_rate: ${model.sample_rate}
     batch_size: 16
+    language_ids: 0
     shuffle: false
     use_start_end_token: false
     num_workers: 8
     pin_memory: true
+    return_sample_id: true
+    return_language_id: true 
 
   test_ds:
     manifest_filepath: null
     sample_rate: ${model.sample_rate}
+    language_ids: 0
     batch_size: 16
     shuffle: false
     use_start_end_token: false
     num_workers: 8
     pin_memory: true
+    return_sample_id: true
+    return_language_id: true 
   
   char_labels: # use for char based models
     update_labels: false
@@ -80,11 +88,11 @@ model:
 trainer:
   devices: -1 # number of GPUs, -1 would use all available GPUs
   num_nodes: 1
-  max_epochs: 50
+  max_epochs: 10
   max_steps: -1 # computed at runtime if not set
   val_check_interval: 1.0 # Set to 0.25 to check 4 times per epoch, or an int for number of iterations
   accelerator: auto
-  strategy: ddp
+  strategy: "ddp_find_unused_parameters_true"
   accumulate_grad_batches: 1
   gradient_clip_val: 0.0
   precision: 32 # 16, 32, or bf16
@@ -92,7 +100,7 @@ trainer:
   enable_progress_bar: True
   num_sanity_val_steps: 0 # number of steps to perform validation steps for sanity check the validation process before starting the training, setting to 0 disables it
   check_val_every_n_epoch: 1 # number of evaluations on validation every n epochs
-  sync_batchnorm: true
+  sync_batchnorm: false  # Enable this on GPU
   enable_checkpointing: False  # Provided by exp_manager
   logger: false  # Provided by exp_manager
   benchmark: false # needs to be false for models with variable-length speech input as it slows down training
